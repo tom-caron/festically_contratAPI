@@ -1,0 +1,7 @@
+{
+  "VALIDATION_ERROR": "Les données envoyées sont invalides",
+  "EVENT_NOT_FOUND": "L'événement demandé n'existe pas",
+  "NOT_ENOUGH_CAPACITY": "Plus assez de places disponibles",
+  "UNAUTHORIZED": "Authentification requise",
+  "FORBIDDEN": "Accès refusé"
+}

@@ -1,0 +1,31 @@
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 12,
+      "title": "Summer Electro Festival 2026",
+      "description": "Un festival électro en plein air avec des DJs internationaux.",
+      "location": "Parc des Expositions, Paris",
+      "date": "2026-07-18T18:00:00Z",
+      "capacity": 5000,
+      "availableTickets": 3478,
+      "price": 79.90
+    },
+    {
+      "id": 15,
+      "title": "Rock Legends Night",
+      "description": "Concert hommage aux plus grands groupes de rock.",
+      "location": "Stade Vélodrome, Marseille",
+      "date": "2026-09-02T20:00:00Z",
+      "capacity": 20000,
+      "availableTickets": 15230,
+      "price": 59.00
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 2,
+    "total": 45,
+    "totalPages": 23
+  }
+}

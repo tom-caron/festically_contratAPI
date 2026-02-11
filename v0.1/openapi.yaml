@@ -1,0 +1,468 @@
+openapi: 3.0.3
+info:
+  title: Festically API
+  version: 1.0.0
+  description: |
+    API de gestion d'événements musicaux.
+    Permet la consultation, réservation et gestion d'événements.
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Environnement local
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  /auth/register:
+    post:
+      summary: Inscription utilisateur
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        "201":
+          description: Utilisateur créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "409":
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Connexion utilisateur
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        "200":
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        "401":
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      summary: Profil utilisateur connecté
+      tags: [Authentication]
+      responses:
+        "200":
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        "401":
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events:
+    get:
+      summary: Liste des événements actifs
+      tags: [Events]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/DateFromParam'
+        - $ref: '#/components/parameters/DateToParam'
+        - $ref: '#/components/parameters/LocationParam'
+      responses:
+        "200":
+          description: Liste paginée des événements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventListResponse'
+
+    post:
+      summary: Création d'un événement
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        "201":
+          description: Événement créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+
+  /events/{id}:
+    get:
+      summary: Détail d'un événement
+      tags: [Events]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Détail événement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Modifier un événement
+      tags: [Events]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        "200":
+          description: Événement modifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
+    delete:
+      summary: Supprimer un événement
+      tags: [Events]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "204":
+          description: Événement supprimé
+
+  /reservations:
+    post:
+      summary: Réserver des billets
+      tags: [Reservations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationInput'
+      responses:
+        "201":
+          description: Réservation confirmée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        "409":
+          $ref: '#/components/responses/CapacityError'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 10
+
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+        example: "-date"
+
+    DateFromParam:
+      name: dateFrom
+      in: query
+      schema:
+        type: string
+        format: date
+
+    DateToParam:
+      name: dateTo
+      in: query
+      schema:
+        type: string
+        format: date
+
+    LocationParam:
+      name: location
+      in: query
+      schema:
+        type: string
+
+  schemas:
+
+    RegisterInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 6
+
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        createdAt:
+          type: string
+          format: date-time
+
+    AuthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: JWT token
+            user:
+              $ref: '#/components/schemas/User'
+
+    UserResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: '#/components/schemas/User'
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        availableTickets:
+          type: integer
+        price:
+          type: number
+          format: float
+
+    EventInput:
+      type: object
+      required:
+        - title
+        - date
+        - capacity
+        - price
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        price:
+          type: number
+
+    ReservationInput:
+      type: object
+      required:
+        - eventId
+        - quantity
+      properties:
+        eventId:
+          type: integer
+        quantity:
+          type: integer
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        userId:
+          type: integer
+        quantity:
+          type: integer
+        totalPrice:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    EventResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: '#/components/schemas/Event'
+
+    EventListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    ReservationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          $ref: '#/components/schemas/Reservation'
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+  responses:
+
+    ValidationError:
+      description: Erreur de validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    CapacityError:
+      description: Capacité insuffisante
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

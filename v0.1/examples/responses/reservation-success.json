@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "data": {
+    "id": 884,
+    "eventId": 12,
+    "userId": 45,
+    "quantity": 3,
+    "totalPrice": 239.70,
+    "createdAt": "2026-03-10T14:32:12Z"
+  }
+}
